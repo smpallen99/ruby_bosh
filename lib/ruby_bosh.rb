@@ -22,7 +22,7 @@ class RubyBOSH
     @@logging = value
   end
 
-  attr_accessor :jid, :rid, :sid, :success
+  attr_accessor :jid, :rid, :sid, :success, :resource
   def initialize(jid, pw, service_url, opts={}) 
     @service_url = service_url
     @jid, @pw = jid, pw
@@ -34,6 +34,7 @@ class RubyBOSH
     @wait    = opts[:wait]   || 5
     @hold    = opts[:hold]   || 3
     @window  = opts[:window] || 5
+    @full_jid = opts[:full_jid] || false
   end
 
   def success?
@@ -47,15 +48,15 @@ class RubyBOSH
   def connect
     initialize_bosh_session
     if send_auth_request 
-      send_restart_request
+      # send_restart_request  ## this is failing. I'm not sure what is supposed to do?
       request_resource_binding
       @success = send_session_request
     end
 
     raise RubyBOSH::AuthFailed, "could not authenticate #{@jid}" unless success?
     @rid += 1 #updates the rid for the next call from the browser
-    
-    [@jid, @sid, @rid]
+    resource = (@full_jid) ? "/#{@resource}" : ""
+    ["#{@jid}#{resource}", @sid, @rid]
   end
 
   private
@@ -102,7 +103,8 @@ class RubyBOSH
       body.iq(:id => "bind_#{rand(100000)}", :type => "set", 
               :xmlns => "jabber:client") do |iq|
         iq.bind(:xmlns => BIND_XMLNS) do |bind|
-          bind.resource("bosh_#{rand(10000)}")
+          @resource = "bosh_#{rand(10000)}"
+          bind.resource(@resource)
         end
       end
     end

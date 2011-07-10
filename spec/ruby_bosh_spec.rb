@@ -33,6 +33,26 @@ describe RubyBOSH do
     s.last.should be_kind_of(Fixnum)
     s[1].should == '123456'
   end
+  
+  it "should return an array with [full_jid, sid, rid] on success" do
+    RubyBOSH.logging = false
+    @rbosh = RubyBOSH.new("skyfallsin@localhost", "skyfallsin",
+                          "http://localhost:5280/http-bind", :full_jid => true)
+    #@rbosh.stub!(:success?).and_return(true)
+    #@rbosh.stub!(:initialize_bosh_session).and_return(true)
+    @rbosh.stub!(:send_auth_request).and_return(true)
+    @rbosh.stub!(:send_restart_request).and_return(true)
+    @rbosh.stub!(:request_resource_binding).and_return(true)
+    @rbosh.stub!(:send_session_request).and_return(true)
+    RestClient.stub!(:post).and_return("<body sid='123456'></body>")
+    @rbosh.resource = '54321'
+    s = @rbosh.connect
+    s.should be_kind_of(Array)
+    s.size.should == 3
+    s.first.should == 'skyfallsin@localhost/54321'
+    s.last.should be_kind_of(Fixnum)
+    s[1].should == '123456'
+  end
 
   describe "Errors" do
     it "should crash with AuthFailed when its not a success?" do
