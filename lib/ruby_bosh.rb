@@ -168,7 +168,7 @@ class RubyBOSH
   end
 
   def recv(msg)
-    puts("Ruby-BOSH - RECV\n[#{now}]: #{msg}") if @logging; msg
+    puts("Ruby-BOSH - RECV\n[#{now}]: #{msg}") if @@logging; msg
   end
 
   private
